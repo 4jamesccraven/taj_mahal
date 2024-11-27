@@ -11,11 +11,28 @@
 namespace py = pybind11;
 using namespace Eigen;
 
+
+/**
+ * @brief Calculates the Mahalanobis distance of one point
+ *
+ * @param x The point for which distance is calculated
+ * @param mu The mean vector of the dataset (column-wise mean)
+ * @param S_inv the inverse covariance matrix
+ *
+ * @return The Mahalanobis distance of the point
+ */
 double mahalanobis_distance(const VectorXd& x, const VectorXd& mu, const MatrixXd& S_inv) {
     VectorXd diff = x - mu;
     return std::sqrt(diff.transpose() * S_inv * diff);
 }
 
+/**
+ * @brief Calculates all mahalanobis distances for a dataset
+ *
+ * @param points A Numpy matrix representing a dataset
+ *
+ * @return A 1D Numpy array containing all the distances
+ */
 py::array mahalanobis_distances(py::array_t<double> points) {
     py::buffer_info points_info = points.request();
 
@@ -49,6 +66,15 @@ py::array mahalanobis_distances(py::array_t<double> points) {
     return py::array(distances.size(), distances.data());
 }
 
+/**
+ * @brief Detects the outliers in the dataset using the Mahalanobis distance
+ *
+ * @param points A Numpy matrix representing a dataset
+ * @param alpha The significance level of the threshold; default 0.01
+ * @param indices Whether or not to return the indices instead of the values; default false
+ *
+ * @return Array of outliers in the dataset
+ */
 py::array detect_outliers(py::array_t<double> points, double alpha = 0.01, bool indices = false) {
     py::buffer_info points_info = points.request();
     size_t num_points = points_info.shape[0];
@@ -93,8 +119,9 @@ py::array detect_outliers(py::array_t<double> points, double alpha = 0.01, bool 
 }
 
 PYBIND11_MODULE(taj_mahal, m) {
-    m.def("distances", &mahalanobis_distances, "Calculates Mahalanobis distances for a numerical dataset");
-    m.def("outliers", &detect_outliers,
+    m.def("distances", &mahalanobis_distances, "Calculates Mahalanobis distances for a numerical dataset",
+        py::arg("points"));
+    m.def("outliers", &detect_outliers, "Returns outlier values or indices",
         py::arg("points"),
         py::arg("alpha") = 0.01,
         py::arg("indices") = false);

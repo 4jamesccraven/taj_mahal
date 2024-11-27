@@ -1,2 +1,3 @@
 .ipynb_checkpoints/**
 src/taj_mahal.egg-info/**
+pkg/**
