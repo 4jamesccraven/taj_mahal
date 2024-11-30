@@ -1,0 +1,113 @@
+% Imports
+\documentclass[9pt, dvipsnames]{beamer}
+\usepackage{times}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{verbatim}
+\usepackage{listings}
+\usepackage{anyfontsize}
+\usepackage{subcaption}
+\usepackage{graphicx}
+\usepackage[export]{adjustbox}
+\usepackage[multidot]{grffile}
+\usepackage{tabularx}
+\usepackage{tikz}
+\usepackage{tipa}
+\usepackage{wasysym}
+\usepackage{amsmath,amssymb,amsfonts}
+% \usepackage[margin=1in]{geometry}
+
+% Beamer Themes
+\usetheme{Ilmenau}
+\usecolortheme{lily}
+\usefonttheme{professionalfonts}
+\setbeamertemplate{caption}[numbered]
+
+% Counter
+\newcounter{saveenumi}
+\resetcounteronoverlays{saveenumi}
+
+% Preamble
+\title{Mahalanobis Distance}
+\author{James C Craven}
+\date{Thursday, December 5th 2024}
+
+
+\begin{document}
+\maketitle
+
+\begin{frame}{What?}
+    \begin{itemize}
+        \item The Mahalanobis distance is a statistical method that detects outliers in a numerical, multivariate
+            dataset.
+        \item It was developed by P.C. Mahalanobis [m\textipa{\ae}.ha.la.no\textipa{"}bis], an indian scientists
+            and mathematician in the year 1933
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{So What?}
+    The Mahalanobis distance is used for a variety of different applications:
+    \begin{itemize}
+        \item Chemometrics - identifying uncommon/unusual chemical samples
+        \item Regression - identifying which data points have the highest influence in the regression
+        \item Ecological Niche Modeling - Measuring deviation of environmental factors from typical conditions
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{How?}
+    The Mahalanobis distance metric (w.r.t. a distribution $Q$) is calculated for one data point of the dataset
+    using the point, the mean vector $\vec{\mu}$, and the inverse of the covariance matrix, $S^{-1}$:
+    \[
+        d_M(\vec{x}, Q) = \sqrt{(\vec{x} - \vec{\mu})^TS^{-1}(\vec{x}-\vec{\mu})}
+    \]
+    This is done for all data points in the dataset and then is compared against a Chi-squared metric. For a multivariate
+    distribution $Q\thicksim\mathcal{N}$ with $n$ features, the metric is equal to $\chi^2_{1-\alpha,n}$ where $1 - \alpha$
+    is the level of confidence we can assert that the point is an outlier.
+\end{frame}
+
+\begin{frame}{What if my data is "weird"?}
+    Even for data that is not normally distributed, the Mahalanobis Distance metric is useful due to the
+    \textbf{Central Limit Theorem}:
+    \begin{theorem}
+        If $X_1,X_2,$\textellipsis$,X_n$ constitute a random sample from an infinite population with mean $\mu$,
+        the variance $\sigma^2$, and the moment-generating function $M_X(t)$, then the limiting distribution of
+        \[
+            Z = \frac{\bar{X}-\mu}{\sigma/\sqrt{n}}
+        \]
+        as $n \to \infty$ is the standard normal distribution, $\mathcal{N}(X;0,1)$
+    \end{theorem}
+\end{frame}
+
+\begin{frame}[fragile=singleslide]\frametitle{On to more interesting things\textellipsis}
+    \begin{lstlisting}[language=python]
+import numpy as np
+from scipy.spatial.distance import mahalanobis
+from scipy.stats import chi2
+
+# read in data
+data = ...
+
+alpha = 0.01
+mu = np.mean(data, axis=0)
+cov_inv = np.linalg.inv(np.cov(data, rowvar=Falase))
+
+distances = [mahalanobis(point, mu, cov_inv)
+             for point in data]
+
+threshold = np.sqrt(chi2.ppf(1 - alpha, data.shape[1]))
+
+outliers = data[np.where(distances > threshold)]
+print(outliers)
+    \end{lstlisting}
+\end{frame}
+
+\begin{frame}{I don't like that though \textellipsis}
+    \begin{itemize}
+        \item It requires two obscure imports from scipy
+        \item It requires you to remember how to calculate the threshold
+        \item Boilerplate is gross, and users shouldn't have to write their own function for this
+    \end{itemize}
+\end{frame}
+
+\end{document}
